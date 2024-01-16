@@ -60,6 +60,7 @@ class PatientGrpcServiceImplTest {
         // Mock the response observer
         StreamObserver<PatientInfo> responseObserver = mock(StreamObserver.class);
 
+
         // Mock the patientRepository.save() method
         when(patientRepository.save(any(PatientModel.class))).thenReturn(savedPatientEntity);
 
@@ -204,24 +205,18 @@ class PatientGrpcServiceImplTest {
                 new PatientModel("Jane Doe", "Female", Instant.parse("1995-02-15T12:30:00Z"), "456 Oak St", "987-654-3210")
         );
 
-        // Mock behavior of patientRepository.findAll()
         when(patientRepository.findAll()).thenReturn(mockPatients);
 
-        // Create a new responseObserver
         StreamObserver<PatientListResponse> responseObserver = mock(StreamObserver.class);
 
-        // Invoke the service method
         patientGrpcService.listPatients(ListPatientsRequest.getDefaultInstance(), responseObserver);
 
-        // Verify that the response observer receives the expected response
         ArgumentCaptor<PatientListResponse> responseCaptor = ArgumentCaptor.forClass(PatientListResponse.class);
         verify(responseObserver).onNext(responseCaptor.capture());
         verify(responseObserver).onCompleted();
 
-        // Validate the content of the response
         PatientListResponse capturedResponse = responseCaptor.getValue();
-        assertEquals(2, capturedResponse.getPatientsList().size()); // Assuming 2 patients in the mock data
-        // Additional validation if needed for the content of the response
+        assertEquals(2, capturedResponse.getPatientsList().size());
     }
 
 }
