@@ -2,15 +2,14 @@ package HIS.HIS_demo.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.AssertTrue;
-
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.ZoneId;
-import java.time.format.DateTimeParseException;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 
 @Entity
 @Table(name = "Patient_model", indexes = {
@@ -29,10 +28,10 @@ public class PatientModel {
     private String sex;
 
     @Column(name = "dateOfBirth", nullable = false, columnDefinition = "TIMESTAMP")
-    private Instant dateOfBirth;
+    private static Instant dateOfBirth;
 
     @Column(name = "age")
-    private int age;
+    private static int age;
 
     @Column(name = "address", length = 30, nullable = false)
     private String address;
@@ -42,12 +41,13 @@ public class PatientModel {
 
     @ManyToMany(mappedBy = "patients")
     private Set<HospitalModel> registeredHospitals = new HashSet<>();
+    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
+    private List<VisitModel> visits;
 
     public PatientModel() {
     }
 
     public PatientModel(
-
             String name,
             String sex,
             Instant dateOfBirth,
@@ -116,6 +116,9 @@ public class PatientModel {
 
     public Set<HospitalModel> getHospitals() {
         return registeredHospitals;
+    }
+    public void setHospitals(List<HospitalModel> hospitals) {
+        this.registeredHospitals = new HashSet<>(hospitals);
     }
 
     public void registerInHospital(HospitalModel hospital) {

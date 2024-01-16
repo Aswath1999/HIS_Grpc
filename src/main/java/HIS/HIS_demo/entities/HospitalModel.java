@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
 @Entity
 public class HospitalModel {
     @Id
@@ -30,6 +31,8 @@ public class HospitalModel {
             inverseJoinColumns = @JoinColumn(name = "patient_id")
     )
     private Set<PatientModel> patients = new HashSet<>();
+    @OneToMany(mappedBy = "hospital", cascade = CascadeType.ALL)
+    private List<VisitModel> visits;
 
     public Set<PatientModel> getPatients() {
         return patients;

@@ -1,8 +1,12 @@
 package HIS.HIS_demo.service;
 import HIS.HIS_demo.Repository.HospitalRepository;
+import HIS.HIS_demo.Repository.PatientRepository;
+import HIS.HIS_demo.Repository.VisitRepository;
 import HIS.HIS_demo.entities.HospitalModel;
 import HIS.HIS_demo.entities.PatientModel;
+import HIS.HIS_demo.entities.VisitModel;
 import HIS.HIS_demo.service.GrpcUtils;
+import com.google.protobuf.Timestamp;
 import patient.PatientInfo;
 import hospital.*;
 import io.grpc.Status;
@@ -13,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,10 +26,14 @@ import java.util.stream.Collectors;
 @GrpcService
 public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalServiceImplBase{
     private final HospitalRepository hospitalRepository;
+    private final PatientRepository patientRepository;
+    private VisitRepository visitRepository;
     private static final Logger log = LoggerFactory.getLogger(HospitalGrpcServiceImpl.class);
     @Autowired
-    public HospitalGrpcServiceImpl(HospitalRepository hospitalRepository) {
+    public HospitalGrpcServiceImpl(HospitalRepository hospitalRepository,PatientRepository patientRepository,VisitRepository visitRepository) {
+        this.patientRepository = patientRepository;
         this.hospitalRepository = hospitalRepository;
+        this.visitRepository=visitRepository;
     }
     @Transactional
     @Override
@@ -144,9 +154,54 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             responseObserver.onError(Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
         }
     }
+    // Assuming VisitRepository is an instance variable in your class
 
+    @Override
+    public void recordVisit(RecordVisitRequest request, StreamObserver<VisitInfo> responseObserver) {
+        try {
+            // Validate the input parameters (you can add more validation logic if needed)
 
+            // Retrieve patient and hospital entities
+            PatientModel patientEntity = patientRepository.findById(request.getPatientId())
+                    .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
 
+            HospitalModel hospitalEntity = hospitalRepository.findById(request.getHospitalId())
+                    .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
 
+            // Create a new VisitModel
+            VisitModel visitModel = new VisitModel(
+                    request.getPatientId(),
+                    request.getHospitalId(),
+                    request.getAge(),
+                    request.getGender()
+            );
+
+            // Save the visit entity to the database using an instance of VisitRepository
+            VisitModel savedVisit = visitRepository.save(visitModel);
+
+            // Convert the saved visit to VisitInfo and send it in the response
+            VisitInfo visitInfoResponse = VisitInfo.newBuilder()
+                    .setPatientId(savedVisit.getPatientId())
+                    .setHospitalId(savedVisit.getHospitalId())
+                    .setAge(savedVisit.getAge())
+                    .setGender(savedVisit.getGender())
+                    .setVisitDate(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()))
+                    .build();
+
+            responseObserver.onNext(visitInfoResponse);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            // Handle exceptions and send an error response
+            responseObserver.onError(Status.INTERNAL.withDescription("Error recording visit").asRuntimeException());
+        }
+    }
 
 }
+
+
+
+
+
+
+
+

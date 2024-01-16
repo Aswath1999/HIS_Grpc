@@ -11,8 +11,10 @@ service HospitalService {
   rpc DeleteHospital(DeleteHospitalRequest) returns (HospitalInfo);
   rpc ListHospitals(ListHospitalsRequest) returns (HospitalsList);
   rpc ListPatientsInHospital(ListPatientsInHospitalRequest) returns (PatientListResponse);
-
+  rpc RecordVisit(RecordVisitRequest) returns (VisitInfo);
+  rpc ListVisitsInHospital(ListVisitsInHospitalRequest) returns (VisitListResponse);
 }
+
 
 message HospitalInfo {
   int32 id = 1;
@@ -50,6 +52,29 @@ message HospitalsList {
 message ListPatientsInHospitalRequest {
   int32 hospitalId = 1;
 }
+
 message PatientListResponse {
   repeated patient.PatientInfo patients = 1;
+}
+message RecordVisitRequest {
+  int32 patientId = 1;
+  int32 hospitalId = 2;
+  int32 age=3;
+  string gender=4;
+}
+
+message VisitInfo {
+  int32 patientId = 1;
+  int32 hospitalId = 2;
+  int32 age = 3;
+  string gender = 4;
+  google.protobuf.Timestamp visitDate = 5;
+}
+
+message ListVisitsInHospitalRequest {
+  int32 hospitalId = 1;
+}
+
+message VisitListResponse {
+  repeated VisitInfo visits = 1;
 }
