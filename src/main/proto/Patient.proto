@@ -19,29 +19,24 @@ message PatientInfo {
   google.protobuf.Timestamp date_of_birth = 4;
   string address = 5;
   string phone_number = 6;
-  repeated google.protobuf.Timestamp visit_date = 7;
-  int32 age = 8;
+  int32 age = 7;
 }
 
 message CreatePatientRequest {
   string name = 1;
   string sex = 2;
-  google.protobuf.Timestamp date_of_birth = 3;
+  string date_of_birth = 3;
   string address = 4;
   string phone_number = 5;
-  repeated google.protobuf.Timestamp visit_date = 6;
-  int32 age = 7;
 }
 
 message UpdatePatientRequest {
   int32 id = 1;
   string name = 2;
   string sex = 3;
-  google.protobuf.Timestamp date_of_birth = 4;
+  string date_of_birth = 4;
   string address = 5;
   string phone_number = 6;
-  repeated google.protobuf.Timestamp visit_date = 7;
-  int32 age = 8;
 }
 
 message DeletePatientRequest {
@@ -57,7 +52,7 @@ message RegisterPatientRequest {
 message PatientHospitalRegistrationResponse {
   int32 patientId = 1;
   int32 hospitalId = 2;
-  google.protobuf.Timestamp date_of_registration = 3;
+  google.protobuf.Timestamp  date_of_registration = 3;
 }
 
 message ListPatientsRequest {

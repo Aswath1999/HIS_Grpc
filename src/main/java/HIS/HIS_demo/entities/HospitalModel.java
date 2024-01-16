@@ -1,4 +1,4 @@
-package entities;
+package HIS.HIS_demo.entities;
 
 import jakarta.persistence.*;
 

@@ -1,10 +1,11 @@
-package service;
-import Repository.HospitalRepository;
-import entities.HospitalModel;
+package HIS.HIS_demo.service;
+import HIS.HIS_demo.Repository.HospitalRepository;
+import HIS.HIS_demo.entities.HospitalModel;
 import hospital.*;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import jakarta.persistence.EntityNotFoundException;
+import net.devh.boot.grpc.server.service.GrpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
+@GrpcService
 public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalServiceImplBase{
     private final HospitalRepository hospitalRepository;
     private static final Logger log = LoggerFactory.getLogger(HospitalGrpcServiceImpl.class);

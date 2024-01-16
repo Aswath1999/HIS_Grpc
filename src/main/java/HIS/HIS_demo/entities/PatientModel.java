@@ -1,10 +1,17 @@
-package entities;
+package HIS.HIS_demo.entities;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.AssertTrue;
 
-import java.time.*;
-import java.util.*;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Period;
+import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
+import java.util.HashSet;
+import java.util.Set;
+
 @Entity
 @Table(name = "Patient_model", indexes = {
         @Index(name = "idx_dateOfBirth", columnList = "dateOfBirth"),
@@ -26,13 +33,16 @@ public class PatientModel {
 
     @Column(name = "age")
     private int age;
+
     @Column(name = "address", length = 30, nullable = false)
     private String address;
 
     @Column(name = "phoneNumber", length = 10)
     private String phoneNumber;
+
     @ManyToMany(mappedBy = "patients")
     private Set<HospitalModel> registeredHospitals = new HashSet<>();
+
     public PatientModel() {
     }
 
@@ -50,6 +60,7 @@ public class PatientModel {
         this.address = address;
         this.phoneNumber = phoneNumber;
     }
+
     public int getId() {
         return id;
     }
@@ -81,6 +92,7 @@ public class PatientModel {
     public void setDateOfBirth(Instant dateOfBirth) {
         this.dateOfBirth = dateOfBirth;
     }
+
     public int getAge() {
         return age;
     }
@@ -100,6 +112,7 @@ public class PatientModel {
     public void setPhoneNumber(String phoneNumber) {
         this.phoneNumber = phoneNumber;
     }
+
     public Set<HospitalModel> getRegisteredHospitals() {
         return registeredHospitals;
     }
@@ -113,24 +126,23 @@ public class PatientModel {
         registeredHospitals.remove(hospital);
         hospital.getPatients().remove(this);
     }
+
     @AssertTrue(message = "Invalid date of birth")
     public boolean isValidDateOfBirth() {
-        // Check if the date of birth is not in the future and is on or before the current time
         return dateOfBirth != null && !dateOfBirth.isAfter(Instant.now());
     }
+
     private int calculateAgeFromDateOfBirth(Instant dateOfBirth) {
         return Period.between(
                 LocalDateTime.ofInstant(dateOfBirth, ZoneId.systemDefault()).toLocalDate(),
                 LocalDate.now()
         ).getYears();
     }
-    @PrePersist
-    @PreUpdate
-    private void calculateAge() {
+
+
+    public void calculateAge() {
         if (dateOfBirth != null) {
-            // Calculate age based on the date of birth
             age = calculateAgeFromDateOfBirth(dateOfBirth);
         }
     }
-
 }
