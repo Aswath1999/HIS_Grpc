@@ -98,13 +98,7 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
     }
 
     private HospitalInfo mapToHospitalResponse(HospitalModel hospitalEntity) {
-        return HospitalInfo.newBuilder()
-                .setId(hospitalEntity.getId())
-                .setName(hospitalEntity.getName())
-                .setLocation(hospitalEntity.getLocation())
-                .setNumberOfBeds(hospitalEntity.getNumber_of_beds())
-                .setFoundingDate(hospitalEntity.getFounding_date())
-                .build();
+       return GrpcUtils.mapToHospitalResponse(hospitalEntity);
     }
     @Transactional
     @Override
@@ -150,6 +144,8 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             responseObserver.onError(Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
         }
     }
+
+
 
 
 

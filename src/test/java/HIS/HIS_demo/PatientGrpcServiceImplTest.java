@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import patient.*;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -197,6 +198,45 @@ class PatientGrpcServiceImplTest {
         verify(responseObserver).onNext(expectedResponse);
         verify(responseObserver).onCompleted();
     }
+
+    @Test
+    void testListHospitalsForPatient() {
+        // Mock the input request
+        ListHospitalsForPatientRequest request = ListHospitalsForPatientRequest.newBuilder()
+                .setPatientId(1)
+                .build();
+
+        PatientModel patientEntity = new PatientModel();
+        patientEntity.setId(1);
+        patientEntity.setName("John Doe");
+
+        HospitalModel hospital1 = new HospitalModel();
+        hospital1.setId(101);
+        hospital1.setName("Hospital A");
+
+        HospitalModel hospital2 = new HospitalModel();
+        hospital2.setId(102);
+        hospital2.setName("Hospital B");
+
+        patientEntity.setHospitals(Arrays.asList(hospital1, hospital2));
+
+        StreamObserver<HospitalsList> responseObserver = mock(StreamObserver.class);
+
+        when(patientRepository.findById(request.getPatientId())).thenReturn(Optional.of(patientEntity));
+
+        patientGrpcService.listHospitalsForPatient(request, responseObserver);
+
+        ArgumentCaptor<HospitalsList> responseCaptor = ArgumentCaptor.forClass(HospitalsList.class);
+        verify(responseObserver).onNext(responseCaptor.capture());
+        verify(responseObserver).onCompleted();
+        verify(responseObserver, never()).onError(any(Status.class));
+
+        // Validate the response content
+        HospitalsList capturedResponse = responseCaptor.getValue();
+        assertEquals(2, capturedResponse.getHospitalsList().size());
+        assertEquals("Hospital A", capturedResponse.getHospitalsList().get(0).getName());
+        assertEquals("Hospital B", capturedResponse.getHospitalsList().get(1).getName());
+    }
     @Test
     public void testListPatients() {
         // Mock data
@@ -218,5 +258,7 @@ class PatientGrpcServiceImplTest {
         PatientListResponse capturedResponse = responseCaptor.getValue();
         assertEquals(2, capturedResponse.getPatientsList().size());
     }
+
+
 
 }

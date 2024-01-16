@@ -114,7 +114,7 @@ public class PatientModel {
         this.phoneNumber = phoneNumber;
     }
 
-    public Set<HospitalModel> getRegisteredHospitals() {
+    public Set<HospitalModel> getHospitals() {
         return registeredHospitals;
     }
 

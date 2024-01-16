@@ -10,6 +10,7 @@ service PatientService {
   rpc DeletePatient(DeletePatientRequest) returns (PatientInfo);
   rpc RegisterPatient(RegisterPatientRequest) returns (PatientHospitalRegistrationResponse);
   rpc ListPatients(ListPatientsRequest) returns (PatientListResponse);
+  rpc ListHospitalsForPatient(ListHospitalsForPatientRequest) returns (HospitalsList);
 }
 
 message PatientInfo {
@@ -60,4 +61,18 @@ message ListPatientsRequest {
 
 message PatientListResponse {
   repeated PatientInfo patients = 1;
+}
+message ListHospitalsForPatientRequest {
+  int32 patient_id = 1;
+}
+message HospitalInfo {
+  int32 id = 1;
+  string name = 2;
+  string location = 3;
+  int32 number_of_beds = 4;
+  string foundingDate = 5;
+}
+
+message HospitalsList {
+  repeated HospitalInfo hospitals = 1;
 }

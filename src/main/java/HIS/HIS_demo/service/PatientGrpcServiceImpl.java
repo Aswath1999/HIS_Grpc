@@ -4,6 +4,7 @@ import HIS.HIS_demo.Repository.HospitalRepository;
 import HIS.HIS_demo.Repository.PatientRepository;
 import HIS.HIS_demo.entities.PatientModel;
 import HIS.HIS_demo.entities.HospitalModel;
+import patient.HospitalInfo;
 import com.google.protobuf.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,9 +17,9 @@ import jakarta.persistence.EntityNotFoundException;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -166,6 +167,37 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
         }
     }
 
+    @Transactional
+    @Override
+    public void listHospitalsForPatient(ListHospitalsForPatientRequest request,
+                                        StreamObserver<HospitalsList> responseObserver) {
+        try {
+            PatientModel patientEntity = patientRepository.findById(request.getPatientId())
+                    .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
+
+            List<HospitalModel> Patienthospitals = new ArrayList<>(patientEntity.getHospitals());
+
+            List<patient.HospitalInfo> hospitalResponses = Patienthospitals.stream()
+                    .map(this::mapToHospitalResponse)
+                    .collect(Collectors.<patient.HospitalInfo>toList());
+
+
+            HospitalsList hospitalsListResponse = HospitalsList.newBuilder()
+                    .addAllHospitals(hospitalResponses)
+                    .build();
+
+            responseObserver.onNext(hospitalsListResponse);
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException ex) {
+            log.error("Error retrieving hospitals for patient. {}", ex.getMessage());
+            responseObserver.onError(Status.NOT_FOUND.withDescription(ex.getMessage()).asRuntimeException());
+        } catch (Exception ex) {
+            log.error("Error retrieving hospitals for patient. {}", ex.getMessage());
+            responseObserver.onError(Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
+        }
+    }
+
+
     private PatientInfo mapToPatientInfo(PatientModel patientEntity) {
         return GrpcUtils.mapToPatientInfo(patientEntity);
     }
@@ -178,4 +210,15 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
             throw new IllegalArgumentException("Invalid date format", e);
         }
     }
+    private patient.HospitalInfo mapToHospitalResponse(HospitalModel hospitalEntity) {
+        return patient.HospitalInfo.newBuilder()
+                .setId(hospitalEntity.getId())
+                .setName(hospitalEntity.getName())
+                .setLocation(hospitalEntity.getLocation())
+                .setNumberOfBeds(hospitalEntity.getNumber_of_beds())
+                .setFoundingDate(hospitalEntity.getFounding_date())
+                // Add other fields as needed
+                .build();
+    }
+
 }

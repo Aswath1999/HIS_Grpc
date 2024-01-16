@@ -120,6 +120,8 @@ class HospitalGrpcServiceImplTest {
         verify(responseObserver).onCompleted();
     }
 
+
+
     @Test
     void testListHospitals() {
         // Mock data

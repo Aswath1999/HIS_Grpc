@@ -1,8 +1,10 @@
 package HIS.HIS_demo.service;
 
+import HIS.HIS_demo.entities.HospitalModel;
 import HIS.HIS_demo.entities.PatientModel;
 import com.google.protobuf.Timestamp;
 import patient.PatientInfo;
+import hospital.HospitalInfo;
 
 
 public class GrpcUtils {
@@ -15,6 +17,15 @@ public class GrpcUtils {
                 .setAddress(patientEntity.getAddress())
                 .setPhoneNumber(patientEntity.getPhoneNumber())
                 .setAge(patientEntity.getAge())
+                .build();
+    }
+    public static HospitalInfo mapToHospitalResponse(HospitalModel hospitalEntity) {
+        return HospitalInfo.newBuilder()
+                .setId(hospitalEntity.getId())
+                .setName(hospitalEntity.getName())
+                .setLocation(hospitalEntity.getLocation())
+                .setNumberOfBeds(hospitalEntity.getNumber_of_beds())
+                .setFoundingDate(hospitalEntity.getFounding_date())
                 .build();
     }
 }
