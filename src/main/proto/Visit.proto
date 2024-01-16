@@ -1,0 +1,38 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+package visit;
+option java_multiple_files = true;
+option java_package = "visit";
+
+service VisitService {
+  rpc createVisit(CreateVisitRequest) returns (VisitResponse);
+  rpc aggregateVisit(VisitRequest) returns (AggVisitResponse);
+}
+
+message CreateVisitRequest {
+  int32 patientId = 1;
+  int32 hospitalId = 2;
+  google.protobuf.Timestamp time = 3;
+}
+
+message VisitResponse {
+  int32 patientId = 1;
+  int32 hospitalId = 2;
+  google.protobuf.Timestamp time = 3;
+}
+
+message VisitRequest {
+  int32 hospitalId = 1;
+  int32 year = 2;
+}
+
+message AggVisitResponse {
+  int32 hospitalId = 1;
+  int32 year = 2;
+  repeated SexAgeStats sexAgeStats = 3;
+}
+
+message SexAgeStats {
+  string sex = 1;
+  int32 averageAge = 2;
+}
