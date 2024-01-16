@@ -16,14 +16,14 @@ message HospitalInfo {
   string name = 2;
   string location = 3;
   int32 number_of_beds = 4;
-  google.protobuf.Timestamp foundingDate = 5;
+  string foundingDate = 5;
 }
 
 message CreateHospitalRequest {
   string name = 1;
   string location = 2;
   int32 number_of_beds = 3;
-  google.protobuf.Timestamp foundingDate = 4;
+  string foundingDate = 4;
 }
 
 message UpdateHospitalRequest {
@@ -31,7 +31,7 @@ message UpdateHospitalRequest {
   string name = 2;
   string location = 3;
   int32 number_of_beds = 4;
-  google.protobuf.Timestamp foundingDate = 5;
+  string foundingDate = 5;
 }
 
 message DeleteHospitalRequest {
