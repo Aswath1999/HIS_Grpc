@@ -1,0 +1,45 @@
+syntax = "proto3";
+import "google/protobuf/timestamp.proto";
+package hospital;
+option java_multiple_files = true;
+option java_package = "hospital";
+
+service HospitalService {
+  rpc CreateHospital(CreateHospitalRequest) returns (HospitalInfo);
+  rpc UpdateHospital(UpdateHospitalRequest) returns (HospitalInfo);
+  rpc DeleteHospital(DeleteHospitalRequest) returns (HospitalInfo);
+  rpc ListHospitals(ListHospitalsRequest) returns (HospitalsList);
+}
+
+message HospitalInfo {
+  int32 id = 1;
+  string name = 2;
+  string location = 3;
+  int32 number_of_beds = 4;
+  google.protobuf.Timestamp foundingDate = 5;
+}
+
+message CreateHospitalRequest {
+  string name = 1;
+  string location = 2;
+  int32 number_of_beds = 3;
+  google.protobuf.Timestamp foundingDate = 4;
+}
+
+message UpdateHospitalRequest {
+  int32 id = 1;
+  string name = 2;
+  string location = 3;
+  int32 number_of_beds = 4;
+  google.protobuf.Timestamp foundingDate = 5;
+}
+
+message DeleteHospitalRequest {
+  int32 id = 1;
+}
+
+message ListHospitalsRequest {}
+
+message HospitalsList {
+  repeated HospitalInfo hospitals = 1;
+}
