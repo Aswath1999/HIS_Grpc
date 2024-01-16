@@ -1,5 +1,6 @@
 syntax = "proto3";
 import "google/protobuf/timestamp.proto";
+import "Patient.proto";
 package hospital;
 option java_multiple_files = true;
 option java_package = "hospital";
@@ -9,6 +10,8 @@ service HospitalService {
   rpc UpdateHospital(UpdateHospitalRequest) returns (HospitalInfo);
   rpc DeleteHospital(DeleteHospitalRequest) returns (HospitalInfo);
   rpc ListHospitals(ListHospitalsRequest) returns (HospitalsList);
+  rpc ListPatientsInHospital(ListPatientsInHospitalRequest) returns (PatientListResponse);
+
 }
 
 message HospitalInfo {
@@ -42,4 +45,11 @@ message ListHospitalsRequest {}
 
 message HospitalsList {
   repeated HospitalInfo hospitals = 1;
+}
+
+message ListPatientsInHospitalRequest {
+  int32 hospitalId = 1;
+}
+message PatientListResponse {
+  repeated patient.PatientInfo patients = 1;
 }

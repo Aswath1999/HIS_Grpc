@@ -1,6 +1,9 @@
 package HIS.HIS_demo.service;
 import HIS.HIS_demo.Repository.HospitalRepository;
 import HIS.HIS_demo.entities.HospitalModel;
+import HIS.HIS_demo.entities.PatientModel;
+import HIS.HIS_demo.service.GrpcUtils;
+import patient.PatientInfo;
 import hospital.*;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -10,9 +13,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
-
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
 @GrpcService
 public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalServiceImplBase{
     private final HospitalRepository hospitalRepository;
@@ -118,6 +122,35 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
         responseObserver.onNext(hospitalsListResponse);
         responseObserver.onCompleted();
     }
+
+    @Transactional
+    @Override
+    public void listPatientsInHospital(ListPatientsInHospitalRequest request, StreamObserver<PatientListResponse> responseObserver) {
+        try {
+            HospitalModel hospitalEntity = hospitalRepository.findById(request.getHospitalId())
+                    .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
+
+            List<PatientModel> patientsInHospital = new ArrayList<>(hospitalEntity.getPatients());
+
+            List<PatientInfo> patientResponses = patientsInHospital.stream()
+                    .map(GrpcUtils::mapToPatientInfo)
+                    .collect(Collectors.toList());
+
+            PatientListResponse patientListResponse = PatientListResponse.newBuilder()
+                    .addAllPatients(patientResponses)
+                    .build();
+
+            responseObserver.onNext(patientListResponse);
+            responseObserver.onCompleted();
+        } catch (EntityNotFoundException ex) {
+            log.error("Error retrieving patients in hospital. {}", ex.getMessage());
+            responseObserver.onError(Status.NOT_FOUND.withDescription(ex.getMessage()).asRuntimeException());
+        } catch (Exception ex) {
+            log.error("Error retrieving patients in hospital. {}", ex.getMessage());
+            responseObserver.onError(Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
+        }
+    }
+
 
 
 }

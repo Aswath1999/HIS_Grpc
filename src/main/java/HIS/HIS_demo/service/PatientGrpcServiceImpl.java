@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import patient.*;
 import io.grpc.Status;
-
+import HIS.HIS_demo.service.GrpcUtils;
 import java.time.ZoneId;
 import io.grpc.stub.StreamObserver;
 import jakarta.persistence.EntityNotFoundException;
@@ -167,15 +167,7 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
     }
 
     private PatientInfo mapToPatientInfo(PatientModel patientEntity) {
-        return PatientInfo.newBuilder()
-                .setId(patientEntity.getId())
-                .setName(patientEntity.getName())
-                .setSex(patientEntity.getSex())
-                .setDateOfBirth(Timestamp.newBuilder().setSeconds(patientEntity.getDateOfBirth().getEpochSecond()))
-                .setAddress(patientEntity.getAddress())
-                .setPhoneNumber(patientEntity.getPhoneNumber())
-                .setAge(patientEntity.getAge())
-                .build();
+        return GrpcUtils.mapToPatientInfo(patientEntity);
     }
     private Instant convertStringToDate(String dateString) {
         try {
