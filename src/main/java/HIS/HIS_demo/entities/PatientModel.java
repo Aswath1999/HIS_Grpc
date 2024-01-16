@@ -122,6 +122,7 @@ public class PatientModel {
         hospital.getPatients().add(this);
     }
 
+
     public void unregisterFromHospital(HospitalModel hospital) {
         registeredHospitals.remove(hospital);
         hospital.getPatients().remove(this);

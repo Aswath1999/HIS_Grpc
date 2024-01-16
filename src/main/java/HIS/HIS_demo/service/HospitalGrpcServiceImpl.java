@@ -119,4 +119,5 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
         responseObserver.onCompleted();
     }
 
+
 }

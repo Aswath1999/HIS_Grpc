@@ -1,7 +1,9 @@
 package HIS.HIS_demo.service;
 
+import HIS.HIS_demo.Repository.HospitalRepository;
 import HIS.HIS_demo.Repository.PatientRepository;
 import HIS.HIS_demo.entities.PatientModel;
+import HIS.HIS_demo.entities.HospitalModel;
 import com.google.protobuf.Timestamp;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,11 +26,13 @@ import java.util.stream.Collectors;
 public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImplBase {
 
     private final PatientRepository patientRepository;
+    private final HospitalRepository hospitalRepository;
     private static final Logger log = LoggerFactory.getLogger(PatientGrpcServiceImpl.class);
 
     @Autowired
-    public PatientGrpcServiceImpl(PatientRepository patientRepository) {
+    public PatientGrpcServiceImpl(PatientRepository patientRepository,HospitalRepository hospitalRepository) {
         this.patientRepository = patientRepository;
+        this.hospitalRepository = hospitalRepository;
     }
 
     @Transactional
@@ -123,6 +127,42 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
             responseObserver.onCompleted();
         } catch (Exception ex) {
             responseObserver.onError(Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
+        }
+    }
+    @Transactional
+    @Override
+    public void registerPatient(RegisterPatientRequest request, StreamObserver<PatientHospitalRegistrationResponse> responseObserver) {
+        try {
+            HospitalModel hospitalEntity = hospitalRepository.findById(request.getHospitalId())
+                    .orElseThrow(() -> new RuntimeException("Hospital not found"));
+
+            PatientModel patientEntity = patientRepository.findById(request.getPatientId())
+                    .orElseThrow(() -> new RuntimeException("Patient not found"));
+
+            // Check if the patient is already registered in the hospital
+            if (hospitalEntity.getPatients().contains(patientEntity)) {
+                throw new RuntimeException("Patient is already registered in the hospital");
+            }
+
+            // Perform the registration
+            patientEntity.registerInHospital(hospitalEntity);
+
+            // Save the updated patient and hospital entities
+            patientRepository.save(patientEntity);
+            hospitalRepository.save(hospitalEntity);
+
+            // Build and send the response
+            PatientHospitalRegistrationResponse response = PatientHospitalRegistrationResponse.newBuilder()
+                    .setPatientId(patientEntity.getId())
+                    .setHospitalId(hospitalEntity.getId())
+                    .setDateOfRegistration(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()))
+                    .build();
+
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error("Error during patient registration: {}", e.getMessage());
+            responseObserver.onError(Status.INTERNAL.withDescription("Error during patient registration").asRuntimeException());
         }
     }
 

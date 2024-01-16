@@ -46,7 +46,6 @@ message DeletePatientRequest {
 message RegisterPatientRequest {
   int32 hospitalId = 1;
   int32 patientId = 2;
-  google.protobuf.Timestamp date_of_registration = 3;
 }
 
 message PatientHospitalRegistrationResponse {
