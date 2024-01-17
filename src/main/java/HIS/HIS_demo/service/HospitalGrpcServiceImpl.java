@@ -71,17 +71,13 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
         try {
             HospitalModel hospitalEntity = hospitalRepository.findById(request.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
-
-            // Update hospital details
             hospitalEntity.setName(request.getName());
             hospitalEntity.setLocation(request.getLocation());
             hospitalEntity.setNumber_of_beds(request.getNumberOfBeds());
             hospitalEntity.setFounding_date(request.getFoundingDate());
 
-            // Save the updated hospital
             HospitalModel updatedHospitalEntity = hospitalRepository.save(hospitalEntity);
 
-            // Build and send the updated hospital response
             HospitalInfo response = mapToHospitalResponse(updatedHospitalEntity);
 
             responseObserver.onNext(response);
@@ -102,7 +98,6 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             HospitalModel hospitalEntity = hospitalRepository.findById(request.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
 
-            // Delete the hospital
             hospitalRepository.delete(hospitalEntity);
 
             HospitalInfo deletedHospitalResponse = mapToHospitalResponse(hospitalEntity);
@@ -165,7 +160,6 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             responseObserver.onError(Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
         }
     }
-    // Assuming VisitRepository is an instance variable in your class
 
     @Override
     public void recordVisit(RecordVisitRequest request, StreamObserver<VisitInfo> responseObserver) {
@@ -215,15 +209,14 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
     public void getVisitAggregates(GetVisitAggregatesRequest request, StreamObserver<VisitAggregatesList> responseObserver) {
         int hospitalId = request.getHospitalId();
 
-        // Fetch visit aggregates from the database based on hospitalId
+
         List<VisitAggregateModel> visitAggregates = visitAggregateRepository.findByHospitalId(hospitalId);
 
-        // Convert VisitAggregateModel to VisitAggregateInfo
         List<VisitAggregateInfo> visitAggregatesInfo = visitAggregates.stream()
                 .map(this::convertToVisitAggregateInfo)
                 .collect(Collectors.toList());
 
-        // Build and send the response
+
         VisitAggregatesList response = VisitAggregatesList.newBuilder()
                 .addAllVisitAggregates(visitAggregatesInfo)
                 .build();
