@@ -40,7 +40,7 @@ public class VisitService {
     }
 
 
-    private Date calculateStartDateForLast10Years() {
+    private Instant calculateStartDateForLast10Years() {
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.YEAR, -10);
         return calendar.getTime();

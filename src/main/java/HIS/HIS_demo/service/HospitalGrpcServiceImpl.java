@@ -201,11 +201,15 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
     @Override
     public void computeAndSaveVisitAggregates(ComputeAndSaveVisitAggregatesRequest request,
                                               StreamObserver<ComputeAndSaveVisitAggregatesResponse> responseObserver) {
+        try{
         int hospitalId = request.getHospitalId();
         visitService.computeAndSaveVisitAggregates(hospitalId);
         ComputeAndSaveVisitAggregatesResponse response = ComputeAndSaveVisitAggregatesResponse.newBuilder().build();
         responseObserver.onNext(response);
-        responseObserver.onCompleted();
+        responseObserver.onCompleted();}
+        catch(Exception e){
+            e.printStackTrace();
+        }
     }
     @Override
     public void getVisitAggregates(GetVisitAggregatesRequest request, StreamObserver<VisitAggregatesList> responseObserver) {

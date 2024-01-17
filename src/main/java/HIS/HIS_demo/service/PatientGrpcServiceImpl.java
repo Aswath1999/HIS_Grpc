@@ -51,7 +51,6 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
                 request.getPhoneNumber()
         );
 
-        // Explicitly calculate age before saving
         patientEntity.calculateAge();
 
         PatientModel savedPatientEntity = patientRepository.save(patientEntity);
@@ -65,22 +64,6 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
             responseObserver.onError(Status.INTERNAL.withDescription("Error creating patient").asRuntimeException());
     }
     }
-
-
-
-    private Instant convertStringToInstant(String dateString) {
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-            return Instant.from(formatter.parse(dateString));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-
-
-
     @Transactional
     @Override
     public void updatePatient(UpdatePatientRequest request, StreamObserver<PatientInfo> responseObserver) {
@@ -179,6 +162,7 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("Error during patient registration: {}", e.getMessage());
             responseObserver.onError(Status.INTERNAL.withDescription("Error during patient registration").asRuntimeException());
         }
