@@ -205,6 +205,7 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
         int hospitalId = request.getHospitalId();
         visitService.computeAndSaveVisitAggregates(hospitalId);
         ComputeAndSaveVisitAggregatesResponse response = ComputeAndSaveVisitAggregatesResponse.newBuilder().build();
+        log.info("Success: Visit aggregates computed and saved successfully.");
         responseObserver.onNext(response);
         responseObserver.onCompleted();}
         catch(Exception e){
@@ -213,23 +214,34 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
     }
     @Override
     public void getVisitAggregates(GetVisitAggregatesRequest request, StreamObserver<VisitAggregatesList> responseObserver) {
-        int hospitalId = request.getHospitalId();
+        try {
+            int hospitalId = request.getHospitalId();
+
+            // Fetch visit aggregates from the repository
+            List<VisitAggregateModel> visitAggregates = visitAggregateRepository.findByHospitalId(hospitalId);
+            log.info("Number of visit aggregates fetched: {}", visitAggregates.size());
+            // Convert VisitAggregateModel instances to VisitAggregateInfo
+            List<VisitAggregateInfo> visitAggregatesInfo = visitAggregates.stream()
+                    .map(this::convertToVisitAggregateInfo)
+                    .collect(Collectors.toList());
+
+            // Build the gRPC response
+            VisitAggregatesList response = VisitAggregatesList.newBuilder()
+                    .addAllVisitAggregates(visitAggregatesInfo)
+                    .build();
 
 
-        List<VisitAggregateModel> visitAggregates = visitAggregateRepository.findByHospitalId(hospitalId);
 
-        List<VisitAggregateInfo> visitAggregatesInfo = visitAggregates.stream()
-                .map(this::convertToVisitAggregateInfo)
-                .collect(Collectors.toList());
-
-
-        VisitAggregatesList response = VisitAggregatesList.newBuilder()
-                .addAllVisitAggregates(visitAggregatesInfo)
-                .build();
-
-        responseObserver.onNext(response);
-        responseObserver.onCompleted();
+            // Send the response to the client
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            // Handle exceptions, log the error, and provide a meaningful response to the client
+            e.printStackTrace();
+            responseObserver.onError(Status.INTERNAL.withDescription("Error fetching visit aggregates").asRuntimeException());
+        }
     }
+
 
     private VisitAggregateInfo convertToVisitAggregateInfo(VisitAggregateModel visitAggregateModel) {
         return VisitAggregateInfo.newBuilder()
