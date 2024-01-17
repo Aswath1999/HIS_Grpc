@@ -14,7 +14,6 @@ public class VisitAggregateModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-
     @Column(name = "hospital_id")
     private int hospitalId;
 
