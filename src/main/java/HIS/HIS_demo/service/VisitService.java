@@ -4,6 +4,7 @@ import HIS.HIS_demo.Repository.VisitAggregateRepository;
 import HIS.HIS_demo.Repository.VisitRepository;
 import HIS.HIS_demo.entities.VisitAggregateModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.util.Calendar;
@@ -18,7 +19,7 @@ public class VisitService {
 
     @Autowired
     private VisitAggregateRepository visitAggregateRepository;
-
+    @Scheduled(cron = "0 0 0 1 * ?")
     public  void computeAndSaveVisitAggregates(int hospitalId) {
         // Fetch data from VisitModel based on hospitalId and calculate aggregates
         List<Object[]> aggregatedData = visitRepository.getAggregateDataByHospitalAndMonth(calculateStartDateForLast10Years(), hospitalId);
@@ -35,7 +36,6 @@ public class VisitService {
         }
     }
     public List<VisitAggregateModel> getAggregatedDataByHospital(int hospitalId) {
-        // Retrieve aggregated data from the VisitAggregateRepository based on the hospital ID
         return visitAggregateRepository.findByHospitalId(hospitalId);
     }
 
