@@ -21,6 +21,10 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Date;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+
 
 @GrpcService
 public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImplBase {
@@ -38,7 +42,7 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
     @Transactional
     @Override
     public void createPatient(CreatePatientRequest request, StreamObserver<PatientInfo> responseObserver) {
-        PatientModel patientEntity = new PatientModel(
+        try{PatientModel patientEntity = new PatientModel(
                 request.getName(),
                 request.getSex(),
                 convertStringToDate(request.getDateOfBirth()),
@@ -54,7 +58,26 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
 
         responseObserver.onNext(response);
         responseObserver.onCompleted();
+    }catch(Exception e) {
+            e.printStackTrace();
+            responseObserver.onError(Status.INTERNAL.withDescription("Error creating patient").asRuntimeException());
     }
+    }
+
+
+
+    private Instant convertStringToInstant(String dateString) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+            return Instant.from(formatter.parse(dateString));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+
+
 
     @Transactional
     @Override

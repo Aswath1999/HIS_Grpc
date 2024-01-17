@@ -170,16 +170,11 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
     @Override
     public void recordVisit(RecordVisitRequest request, StreamObserver<VisitInfo> responseObserver) {
         try {
-            // Validate the input parameters (you can add more validation logic if needed)
-
-            // Retrieve patient and hospital entities
             PatientModel patientEntity = patientRepository.findById(request.getPatientId())
                     .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
 
             HospitalModel hospitalEntity = hospitalRepository.findById(request.getHospitalId())
                     .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
-
-            // Create a new VisitModel
             VisitModel visitModel = new VisitModel(
                     request.getPatientId(),
                     request.getHospitalId(),
@@ -187,10 +182,8 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
                     request.getGender()
             );
 
-            // Save the visit entity to the database using an instance of VisitRepository
             VisitModel savedVisit = visitRepository.save(visitModel);
 
-            // Convert the saved visit to VisitInfo and send it in the response
             VisitInfo visitInfoResponse = VisitInfo.newBuilder()
                     .setPatientId(savedVisit.getPatientId())
                     .setHospitalId(savedVisit.getHospitalId())
@@ -202,7 +195,7 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             responseObserver.onNext(visitInfoResponse);
             responseObserver.onCompleted();
         } catch (Exception e) {
-            // Handle exceptions and send an error response
+            e.printStackTrace();
             responseObserver.onError(Status.INTERNAL.withDescription("Error recording visit").asRuntimeException());
         }
     }
@@ -214,8 +207,6 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
                                               StreamObserver<ComputeAndSaveVisitAggregatesResponse> responseObserver) {
         int hospitalId = request.getHospitalId();
         visitService.computeAndSaveVisitAggregates(hospitalId);
-
-        // You can send a response if needed
         ComputeAndSaveVisitAggregatesResponse response = ComputeAndSaveVisitAggregatesResponse.newBuilder().build();
         responseObserver.onNext(response);
         responseObserver.onCompleted();
