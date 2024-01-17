@@ -3,7 +3,12 @@ import jakarta.persistence.*;
 
 
 @Entity
-@Table(name = "visit_aggregate")
+@Table(name = "visit_aggregate", indexes = {
+        @Index(name = "idx_hospital_id", columnList = "hospital_id"),
+        @Index(name = "idx_gender", columnList = "gender"),
+        @Index(name = "idx_age", columnList = "average_age"),
+        @Index(name = "idx_year_month", columnList = "visit_year, visit_month")
+})
 public class VisitAggregateModel {
 
     @Id
@@ -25,8 +30,6 @@ public class VisitAggregateModel {
     @Column(name = "gender")
     private String gender;
 
-    // Constructors
-
     public VisitAggregateModel() {
     }
 
@@ -37,8 +40,6 @@ public class VisitAggregateModel {
         this.averageAge = (int) Math.round(averageAge);
         this.gender = gender;
     }
-
-    // Getters and setters
 
     public int getId() {
         return id;
