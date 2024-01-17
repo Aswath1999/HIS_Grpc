@@ -161,19 +161,13 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
             PatientModel patientEntity = patientRepository.findById(request.getPatientId())
                     .orElseThrow(() -> new RuntimeException("Patient not found"));
 
-            // Check if the patient is already registered in the hospital
             if (hospitalEntity.getPatients().contains(patientEntity)) {
                 throw new RuntimeException("Patient is already registered in the hospital");
             }
-
-            // Perform the registration
             patientEntity.registerInHospital(hospitalEntity);
-
-            // Save the updated patient and hospital entities
             patientRepository.save(patientEntity);
             hospitalRepository.save(hospitalEntity);
 
-            // Build and send the response
             PatientHospitalRegistrationResponse response = PatientHospitalRegistrationResponse.newBuilder()
                     .setPatientId(patientEntity.getId())
                     .setHospitalId(hospitalEntity.getId())
