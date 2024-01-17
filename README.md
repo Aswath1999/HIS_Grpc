@@ -6,7 +6,7 @@ A demo backend application of a Hospital Information System. The application use
 - Grpc
 - H2 database
 - Springboot (Gradle Build)
-
+  
 ## Features
 - Create, update and delete hospitals
 - Create, update and delete Patients
