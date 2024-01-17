@@ -1,5 +1,8 @@
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import HIS.HIS_demo.Repository.VisitAggregateRepository;
+import HIS.HIS_demo.Repository.VisitRepository;
+import HIS.HIS_demo.service.VisitService;
 import org.mockito.ArgumentCaptor;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -14,7 +17,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -29,6 +31,15 @@ class HospitalGrpcServiceImplTest {
 
     @InjectMocks
     private HospitalGrpcServiceImpl hospitalGrpcService;
+    @Mock
+    private VisitRepository visitRepository;
+
+    @Mock
+    private VisitAggregateRepository visitAggregateRepository;
+
+    @Mock
+    private VisitService visitService;
+
 
     @Test
     void testCreateHospital() {
@@ -142,7 +153,7 @@ class HospitalGrpcServiceImplTest {
 
         // Validate the content of the response
         HospitalsList capturedResponse = responseCaptor.getValue();
-        assertEquals(2, capturedResponse.getHospitalsList().size()); // Assuming 2 hospitals in the mock data
-        // Additional validation if needed for the content of the response
+        assertEquals(2, capturedResponse.getHospitalsList().size());
     }
+
 }

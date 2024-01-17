@@ -13,6 +13,8 @@ service HospitalService {
   rpc ListPatientsInHospital(ListPatientsInHospitalRequest) returns (PatientListResponse);
   rpc RecordVisit(RecordVisitRequest) returns (VisitInfo);
   rpc ListVisitsInHospital(ListVisitsInHospitalRequest) returns (VisitListResponse);
+  rpc ComputeAndSaveVisitAggregates(ComputeAndSaveVisitAggregatesRequest) returns (ComputeAndSaveVisitAggregatesResponse);
+  rpc GetVisitAggregates(GetVisitAggregatesRequest) returns (VisitAggregatesList);
 }
 
 
@@ -77,4 +79,28 @@ message ListVisitsInHospitalRequest {
 
 message VisitListResponse {
   repeated VisitInfo visits = 1;
+}
+
+message ComputeAndSaveVisitAggregatesRequest {
+  int32 hospitalId = 1;
+}
+
+message ComputeAndSaveVisitAggregatesResponse {
+}
+
+message GetVisitAggregatesRequest {
+  int32 hospitalId = 1;
+}
+
+message VisitAggregatesList {
+  repeated VisitAggregateInfo visitAggregates = 1;
+}
+
+message VisitAggregateInfo {
+  int32 id = 1;
+  int32 hospitalId = 2;
+  int32 visitYear = 3;
+  int32 visitMonth = 4;
+  int32 averageAge = 5;
+  string gender = 6;
 }

@@ -1,5 +1,4 @@
 package HIS.HIS_demo.service;
-
 import HIS.HIS_demo.Repository.HospitalRepository;
 import HIS.HIS_demo.Repository.PatientRepository;
 import HIS.HIS_demo.entities.PatientModel;
@@ -47,7 +46,6 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
                 request.getPhoneNumber()
         );
 
-        // Explicitly calculate age before saving
         patientEntity.calculateAge();
 
         PatientModel savedPatientEntity = patientRepository.save(patientEntity);
@@ -203,10 +201,8 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
     }
     private Instant convertStringToDate(String dateString) {
         try {
-            // Assuming dateString is in ISO 8601 format
             return Instant.parse(dateString);
         } catch (DateTimeParseException e) {
-            // Handle parsing error
             throw new IllegalArgumentException("Invalid date format", e);
         }
     }
@@ -217,7 +213,6 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
                 .setLocation(hospitalEntity.getLocation())
                 .setNumberOfBeds(hospitalEntity.getNumber_of_beds())
                 .setFoundingDate(hospitalEntity.getFounding_date())
-                // Add other fields as needed
                 .build();
     }
 

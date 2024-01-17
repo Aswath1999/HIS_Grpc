@@ -1,9 +1,11 @@
 package HIS.HIS_demo.service;
 import HIS.HIS_demo.Repository.HospitalRepository;
 import HIS.HIS_demo.Repository.PatientRepository;
+import HIS.HIS_demo.Repository.VisitAggregateRepository;
 import HIS.HIS_demo.Repository.VisitRepository;
 import HIS.HIS_demo.entities.HospitalModel;
 import HIS.HIS_demo.entities.PatientModel;
+import HIS.HIS_demo.entities.VisitAggregateModel;
 import HIS.HIS_demo.entities.VisitModel;
 import HIS.HIS_demo.service.GrpcUtils;
 import com.google.protobuf.Timestamp;
@@ -27,13 +29,22 @@ import java.util.stream.Collectors;
 public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalServiceImplBase{
     private final HospitalRepository hospitalRepository;
     private final PatientRepository patientRepository;
-    private VisitRepository visitRepository;
+    private final VisitRepository visitRepository;
+    private final VisitAggregateRepository visitAggregateRepository;
+    @Autowired
+    private final VisitService visitService;
     private static final Logger log = LoggerFactory.getLogger(HospitalGrpcServiceImpl.class);
     @Autowired
-    public HospitalGrpcServiceImpl(HospitalRepository hospitalRepository,PatientRepository patientRepository,VisitRepository visitRepository) {
+    public HospitalGrpcServiceImpl(HospitalRepository hospitalRepository,
+                                   PatientRepository patientRepository,
+                                   VisitRepository visitRepository,
+                                   VisitAggregateRepository visitAggregateRepository,
+                                   VisitService visitService) {
         this.patientRepository = patientRepository;
         this.hospitalRepository = hospitalRepository;
-        this.visitRepository=visitRepository;
+        this.visitRepository = visitRepository;
+        this.visitService = visitService;
+        this.visitAggregateRepository=visitAggregateRepository;
     }
     @Transactional
     @Override
@@ -195,6 +206,52 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             responseObserver.onError(Status.INTERNAL.withDescription("Error recording visit").asRuntimeException());
         }
     }
+
+//Director Request
+
+    @Override
+    public void computeAndSaveVisitAggregates(ComputeAndSaveVisitAggregatesRequest request,
+                                              StreamObserver<ComputeAndSaveVisitAggregatesResponse> responseObserver) {
+        int hospitalId = request.getHospitalId();
+        visitService.computeAndSaveVisitAggregates(hospitalId);
+
+        // You can send a response if needed
+        ComputeAndSaveVisitAggregatesResponse response = ComputeAndSaveVisitAggregatesResponse.newBuilder().build();
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+    @Override
+    public void getVisitAggregates(GetVisitAggregatesRequest request, StreamObserver<VisitAggregatesList> responseObserver) {
+        int hospitalId = request.getHospitalId();
+
+        // Fetch visit aggregates from the database based on hospitalId
+        List<VisitAggregateModel> visitAggregates = visitAggregateRepository.findByHospitalId(hospitalId);
+
+        // Convert VisitAggregateModel to VisitAggregateInfo
+        List<VisitAggregateInfo> visitAggregatesInfo = visitAggregates.stream()
+                .map(this::convertToVisitAggregateInfo)
+                .collect(Collectors.toList());
+
+        // Build and send the response
+        VisitAggregatesList response = VisitAggregatesList.newBuilder()
+                .addAllVisitAggregates(visitAggregatesInfo)
+                .build();
+
+        responseObserver.onNext(response);
+        responseObserver.onCompleted();
+    }
+
+    private VisitAggregateInfo convertToVisitAggregateInfo(VisitAggregateModel visitAggregateModel) {
+        return VisitAggregateInfo.newBuilder()
+                .setId(visitAggregateModel.getId())
+                .setHospitalId(visitAggregateModel.getHospitalId())
+                .setVisitYear(visitAggregateModel.getVisitYear())
+                .setVisitMonth(visitAggregateModel.getVisitMonth())
+                .setAverageAge(visitAggregateModel.getAverageAge())
+                .setGender(visitAggregateModel.getGender())
+                .build();
+    }
+
 
 }
 

@@ -19,7 +19,7 @@ public class VisitService {
     @Autowired
     private VisitAggregateRepository visitAggregateRepository;
 
-    public void computeAndSaveVisitAggregates(int hospitalId) {
+    public  void computeAndSaveVisitAggregates(int hospitalId) {
         // Fetch data from VisitModel based on hospitalId and calculate aggregates
         List<Object[]> aggregatedData = visitRepository.getAggregateDataByHospitalAndMonth(calculateStartDateForLast10Years(), hospitalId);
 
@@ -34,6 +34,11 @@ public class VisitService {
             visitAggregateRepository.save(aggregateEntity);
         }
     }
+    public List<VisitAggregateModel> getAggregatedDataByHospital(int hospitalId) {
+        // Retrieve aggregated data from the VisitAggregateRepository based on the hospital ID
+        return visitAggregateRepository.findByHospitalId(hospitalId);
+    }
+
 
     private Date calculateStartDateForLast10Years() {
         Calendar calendar = Calendar.getInstance();
