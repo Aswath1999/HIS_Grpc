@@ -153,9 +153,11 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             responseObserver.onNext(patientListResponse);
             responseObserver.onCompleted();
         } catch (EntityNotFoundException ex) {
+            ex.printStackTrace();
             log.error("Error retrieving patients in hospital. {}", ex.getMessage());
             responseObserver.onError(Status.NOT_FOUND.withDescription(ex.getMessage()).asRuntimeException());
         } catch (Exception ex) {
+            ex.printStackTrace();
             log.error("Error retrieving patients in hospital. {}", ex.getMessage());
             responseObserver.onError(Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
         }

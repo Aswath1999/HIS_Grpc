@@ -28,10 +28,10 @@ public class PatientModel {
     private String sex;
 
     @Column(name = "dateOfBirth", nullable = false, columnDefinition = "TIMESTAMP")
-    private static Instant dateOfBirth;
+    private  Instant dateOfBirth;
 
     @Column(name = "age")
-    private static int age;
+    private  int age;
 
     @Column(name = "address", length = 30, nullable = false)
     private String address;

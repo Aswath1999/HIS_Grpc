@@ -543,3 +543,5 @@ Caused by: org.h2.mvstore.MVStoreException: The file is locked: /Users/aswathcha
 	at org.h2.mvstore.SingleFileStore.open(SingleFileStore.java:81)
 	at org.h2.mvstore.MVStore.<init>(MVStore.java:286)
 	... 58 more
+2024-01-17 17:38:01.717511+01:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLNonTransientException: The object is already closed [90007-224]

@@ -42,7 +42,8 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
     @Transactional
     @Override
     public void createPatient(CreatePatientRequest request, StreamObserver<PatientInfo> responseObserver) {
-        try{PatientModel patientEntity = new PatientModel(
+        try{
+        PatientModel patientEntity = new PatientModel(
                 request.getName(),
                 request.getSex(),
                 convertStringToDate(request.getDateOfBirth()),
@@ -50,6 +51,7 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
                 request.getPhoneNumber()
         );
 
+        // Explicitly calculate age before saving
         patientEntity.calculateAge();
 
         PatientModel savedPatientEntity = patientRepository.save(patientEntity);
