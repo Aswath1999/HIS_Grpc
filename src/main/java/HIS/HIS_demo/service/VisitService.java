@@ -23,16 +23,11 @@ public class VisitService {
     @Autowired
     private VisitAggregateRepository visitAggregateRepository;
 
-    public void computeAndSaveVisitAggregates(int hospitalId) {
-        try {
-            Instant startDate = calculateStartDateForLast10Years();
-            Instant enddate= Instant.now();
-            log.info("Start date for computation: {}", startDate);
-
+    public  void computeAndSaveVisitAggregates(int hospitalId) {
+        try{
             // Fetch data from VisitModel based on hospitalId and calculate aggregates
-            List<Object[]> aggregatedData = visitRepository.getAggregateDataByHospitalAndMonth(startDate, hospitalId,enddate);
+            List<Object[]> aggregatedData = visitRepository.getAggregateDataByHospitalAndMonth(calculateStartDateForLast10Years(), hospitalId);
             log.info("Number of aggregated data fetched: {}", aggregatedData.size());
-            log.info("Executing query with hospitalId: {}", hospitalId);
             // Process the aggregated data and save to VisitAggregateEntity
             for (Object[] data : aggregatedData) {
                 int visitYear = ((Number) data[1]).intValue();
@@ -43,14 +38,12 @@ public class VisitService {
                 VisitAggregateModel aggregateEntity = new VisitAggregateModel(hospitalId, visitYear, visitMonth, averageAge, gender);
                 visitAggregateRepository.save(aggregateEntity);
                 log.info("Visit aggregates computation and save completed successfully for hospitalId: {}", hospitalId);
-            }
-        }
+            }}
 
         catch (Exception e){
             log.error("Error computing and saving visit aggregates for hospitalId: {}", hospitalId, e);
         }
     }
-
     public List<VisitAggregateModel> getAggregatedDataByHospital(int hospitalId) {
         return visitAggregateRepository.findByHospitalId(hospitalId);
     }
@@ -60,4 +53,3 @@ public class VisitService {
         return Instant.now().minusSeconds(10L * 365 * 24 * 60 * 60); // 10 years ago
     }
 }
-
