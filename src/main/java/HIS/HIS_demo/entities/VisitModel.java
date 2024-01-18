@@ -2,7 +2,6 @@ package HIS.HIS_demo.entities;
 
 import jakarta.persistence.*;
 import java.time.Instant;
-
 @Entity
 public class VisitModel {
 
@@ -10,20 +9,10 @@ public class VisitModel {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Basic
-    @Column(name = "patient_id", insertable = false, updatable = false)
+    @Column(name = "patientid")
     private int patientId;
 
-    @ManyToOne
-    @JoinColumn(name = "patient_id", referencedColumnName = "id")
-    private PatientModel patient;
-
-    @ManyToOne
-    @JoinColumn(name = "hospital_id")
-    private HospitalModel hospital;
-
-    @Basic
-    @Column(name = "hospital_id", insertable = false, updatable = false)
+    @Column(name = "hospitalid")
     private int hospitalId;
 
     @Column(name = "age")
@@ -42,8 +31,8 @@ public class VisitModel {
         this.patientId = patientId;
         this.hospitalId = hospitalId;
         this.visitDate = Instant.now();
-        this.age=age;
-        this.gender=gender;
+        this.age = age;
+        this.gender = gender;
     }
 
     // Getters and Setters
@@ -64,32 +53,20 @@ public class VisitModel {
         this.patientId = patientId;
     }
 
-    public PatientModel getPatient() {
-        return patient;
+    public int getHospitalId() {
+        return hospitalId;
     }
 
-    public void setPatient(PatientModel patient) {
-        this.patient = patient;
-    }
-
-    public HospitalModel getHospital() {
-        return hospital;
-    }
-
-    public void setHospital(HospitalModel hospital) {
-        this.hospital = hospital;
+    public void setHospitalId(int hospitalId) {
+        this.hospitalId = hospitalId;
     }
 
     public int getAge() {
         return age;
     }
 
-
     public void setAge(int age) {
         this.age = age;
-    }
-    public int getHospitalId() {
-        return hospitalId;
     }
 
     public String getGender() {
@@ -108,4 +85,3 @@ public class VisitModel {
         this.visitDate = visitDate;
     }
 }
-

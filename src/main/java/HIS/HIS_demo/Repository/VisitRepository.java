@@ -18,11 +18,14 @@ import java.util.List;
 public interface VisitRepository extends JpaRepository<VisitModel, Integer> {
 
 
-    @Query("SELECT v.hospital.id, EXTRACT(YEAR FROM v.visitDate), EXTRACT(MONTH FROM v.visitDate), AVG(v.age), v.gender " +
+    @Query("SELECT v.hospitalId, EXTRACT(YEAR FROM v.visitDate), EXTRACT(MONTH FROM v.visitDate), AVG(v.age), v.gender " +
             "FROM VisitModel v " +
-            "WHERE v.visitDate >= :startDate AND v.hospital.id = :hospitalId " +
-            "GROUP BY v.hospital.id, EXTRACT(YEAR FROM v.visitDate), EXTRACT(MONTH FROM v.visitDate), v.gender")
+            "WHERE v.visitDate >= :startDate AND v.hospitalId = :hospitalId " +
+            "GROUP BY v.hospitalId, EXTRACT(YEAR FROM v.visitDate), EXTRACT(MONTH FROM v.visitDate), v.gender")
     List<Object[]> getAggregateDataByHospitalAndMonth(@Param("startDate") Instant startDate, @Param("hospitalId") int hospitalId);
+
+
+
 
 
 }

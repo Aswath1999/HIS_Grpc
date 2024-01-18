@@ -41,8 +41,6 @@ public class PatientModel {
 
     @ManyToMany(mappedBy = "patients")
     private Set<HospitalModel> registeredHospitals = new HashSet<>();
-    @OneToMany(mappedBy = "patient", cascade = CascadeType.ALL)
-    private List<VisitModel> visits;
 
     public PatientModel() {
     }

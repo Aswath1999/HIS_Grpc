@@ -181,15 +181,21 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             // Find the patient entity by ID
             PatientModel patientEntity = patientRepository.findById(request.getPatientId())
                     .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
+
             // Find the hospital entity by ID
             HospitalModel hospitalEntity = hospitalRepository.findById(request.getHospitalId())
                     .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
+
+            // Calculate the age based on the patient's birthdate and the current date
+            int patientAge = patientEntity.getAge();
+            String gender= patientEntity.getSex();
+
             // Create a new VisitModel instance from the gRPC request
             VisitModel visitModel = new VisitModel(
                     request.getPatientId(),
                     request.getHospitalId(),
-                    request.getAge(),
-                    request.getGender()
+                    patientAge,
+                    gender
             );
 
             // Save the new visit entity to the database
@@ -212,7 +218,7 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
         }
     }
 
-//Director Request
+    //Director Request
 // gRPC service method to compute and save visit aggregates
     @Override
     public void computeAndSaveVisitAggregates(ComputeAndSaveVisitAggregatesRequest request,
@@ -257,6 +263,42 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             e.printStackTrace();
             responseObserver.onError(Status.INTERNAL.withDescription("Error fetching visit aggregates").asRuntimeException());
         }
+    }
+
+    @Transactional
+    @Override
+    public void listAllVisits(ListAllVisitsRequest request, StreamObserver<VisitListResponse> responseObserver) {
+        try {
+            // Fetch all visits from the repository
+            List<VisitModel> allVisits = visitRepository.findAll();
+
+            // Convert VisitModel instances to VisitInfo
+            List<VisitInfo> allVisitsInfo = allVisits.stream()
+                    .map(this::mapToVisitInfo)
+                    .collect(Collectors.toList());
+
+            // Build the gRPC response
+            VisitListResponse response = VisitListResponse.newBuilder()
+                    .addAllVisits(allVisitsInfo)
+                    .build();
+
+            // Send the response to the client
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            // Handle exceptions, log the error, and provide a meaningful response to the client
+            e.printStackTrace();
+            responseObserver.onError(Status.INTERNAL.withDescription("Error fetching all visits").asRuntimeException());
+        }
+    }
+    private VisitInfo mapToVisitInfo(VisitModel visitModel) {
+        return VisitInfo.newBuilder()
+                .setPatientId(visitModel.getPatientId())
+                .setHospitalId(visitModel.getHospitalId())
+                .setAge(visitModel.getAge())
+                .setGender(visitModel.getGender())
+                .setVisitDate(Timestamp.newBuilder().setSeconds(visitModel.getVisitDate().getEpochSecond()))
+                .build();
     }
 
 
