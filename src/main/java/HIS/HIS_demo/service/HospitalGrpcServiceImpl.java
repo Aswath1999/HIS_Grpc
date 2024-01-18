@@ -27,13 +27,17 @@ import java.util.stream.Collectors;
 
 @GrpcService
 public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalServiceImplBase{
+    // Repositories for database access
     private final HospitalRepository hospitalRepository;
     private final PatientRepository patientRepository;
     private final VisitRepository visitRepository;
     private final VisitAggregateRepository visitAggregateRepository;
+    // Service for additional visit-related operations
     @Autowired
     private final VisitService visitService;
+    // Logger for logging information
     private static final Logger log = LoggerFactory.getLogger(HospitalGrpcServiceImpl.class);
+    // Constructor for dependency injection
     @Autowired
     public HospitalGrpcServiceImpl(HospitalRepository hospitalRepository,
                                    PatientRepository patientRepository,
@@ -49,40 +53,47 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
     @Transactional
     @Override
     public void createHospital(CreateHospitalRequest request, StreamObserver<HospitalInfo> responseObserver) {
+        // Create a new HospitalModel instance from the gRPC request
         HospitalModel hospitalEntity = new HospitalModel(
                 request.getName(),
                 request.getLocation(),
                 request.getNumberOfBeds(),
                 request.getFoundingDate()
         );
+        // Save the new hospital entity to the database
 
         HospitalModel savedHospitalEntity = hospitalRepository.save(hospitalEntity);
 
         log.info("Hospital created - ID: {}, Name: {}", savedHospitalEntity.getId(), savedHospitalEntity.getName());
-
+        // Map the saved hospital entity to gRPC response and send it to the client
         HospitalInfo response = mapToHospitalResponse(savedHospitalEntity);
 
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
+    // gRPC service method to update an existing hospital
     @Transactional
     @Override
     public void updateHospital(UpdateHospitalRequest request, StreamObserver<HospitalInfo> responseObserver) {
         try {
+            // Find the existing hospital entity by ID
             HospitalModel hospitalEntity = hospitalRepository.findById(request.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
+            // Update the fields of the existing hospital entity with the new values
             hospitalEntity.setName(request.getName());
             hospitalEntity.setLocation(request.getLocation());
             hospitalEntity.setNumber_of_beds(request.getNumberOfBeds());
             hospitalEntity.setFounding_date(request.getFoundingDate());
 
+            // Save the updated hospital entity to the database
             HospitalModel updatedHospitalEntity = hospitalRepository.save(hospitalEntity);
 
+            // Map the updated hospital entity to gRPC response and send it to the client
             HospitalInfo response = mapToHospitalResponse(updatedHospitalEntity);
-
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (EntityNotFoundException ex) {
+            // Handle the case where the hospital is not found
             log.error("Error updating hospital. {}", ex.getMessage());
             responseObserver.onError(Status.NOT_FOUND.withDescription("Hospital not found").asRuntimeException());
         } catch (Exception ex) {
@@ -90,18 +101,18 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             responseObserver.onError(Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
         }
     }
-
+    // gRPC service method to delete an existing hospital
     @Transactional
     @Override
     public void deleteHospital(DeleteHospitalRequest request, StreamObserver<HospitalInfo> responseObserver) {
         try {
+            // Find the existing hospital entity by ID
             HospitalModel hospitalEntity = hospitalRepository.findById(request.getId())
                     .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
-
+            // Delete the hospital entity from the database
             hospitalRepository.delete(hospitalEntity);
-
+            // Map the deleted hospital entity to gRPC response and send it to the client
             HospitalInfo deletedHospitalResponse = mapToHospitalResponse(hospitalEntity);
-
             responseObserver.onNext(deletedHospitalResponse);
             responseObserver.onCompleted();
         } catch (EntityNotFoundException ex) {
@@ -112,10 +123,11 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             responseObserver.onError(Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
         }
     }
-
+    // Helper method to map a HospitalModel entity to a gRPC response
     private HospitalInfo mapToHospitalResponse(HospitalModel hospitalEntity) {
        return GrpcUtils.mapToHospitalResponse(hospitalEntity);
     }
+    // gRPC service method to list all hospitals
     @Transactional
     @Override
     public void listHospitals(ListHospitalsRequest request, StreamObserver<HospitalsList> responseObserver) {
@@ -132,24 +144,24 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
         responseObserver.onNext(hospitalsListResponse);
         responseObserver.onCompleted();
     }
-
+    // gRPC service method to list all patients in a hospital
     @Transactional
     @Override
     public void listPatientsInHospital(ListPatientsInHospitalRequest request, StreamObserver<PatientListResponse> responseObserver) {
         try {
+            // Find the hospital entity by ID
             HospitalModel hospitalEntity = hospitalRepository.findById(request.getHospitalId())
                     .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
-
+            // Get the list of patients associated with the hospital
             List<PatientModel> patientsInHospital = new ArrayList<>(hospitalEntity.getPatients());
-
+            // Map each patient entity to a gRPC response
             List<PatientInfo> patientResponses = patientsInHospital.stream()
                     .map(GrpcUtils::mapToPatientInfo)
                     .collect(Collectors.toList());
-
+            // Build the gRPC response containing the list of patients
             PatientListResponse patientListResponse = PatientListResponse.newBuilder()
                     .addAllPatients(patientResponses)
                     .build();
-
             responseObserver.onNext(patientListResponse);
             responseObserver.onCompleted();
         } catch (EntityNotFoundException ex) {
@@ -162,15 +174,17 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             responseObserver.onError(Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
         }
     }
-
+    // gRPC service method to record a visit
     @Override
     public void recordVisit(RecordVisitRequest request, StreamObserver<VisitInfo> responseObserver) {
         try {
+            // Find the patient entity by ID
             PatientModel patientEntity = patientRepository.findById(request.getPatientId())
                     .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
-
+            // Find the hospital entity by ID
             HospitalModel hospitalEntity = hospitalRepository.findById(request.getHospitalId())
                     .orElseThrow(() -> new EntityNotFoundException("Hospital not found"));
+            // Create a new VisitModel instance from the gRPC request
             VisitModel visitModel = new VisitModel(
                     request.getPatientId(),
                     request.getHospitalId(),
@@ -178,8 +192,10 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
                     request.getGender()
             );
 
+            // Save the new visit entity to the database
             VisitModel savedVisit = visitRepository.save(visitModel);
 
+            // Map the saved visit entity to gRPC response and send it to the client
             VisitInfo visitInfoResponse = VisitInfo.newBuilder()
                     .setPatientId(savedVisit.getPatientId())
                     .setHospitalId(savedVisit.getHospitalId())
@@ -197,13 +213,16 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
     }
 
 //Director Request
-
+// gRPC service method to compute and save visit aggregates
     @Override
     public void computeAndSaveVisitAggregates(ComputeAndSaveVisitAggregatesRequest request,
                                               StreamObserver<ComputeAndSaveVisitAggregatesResponse> responseObserver) {
         try{
+
         int hospitalId = request.getHospitalId();
+        // Invoke the visit service to compute and save visit aggregates
         visitService.computeAndSaveVisitAggregates(hospitalId);
+        // Build and send the success response to the client
         ComputeAndSaveVisitAggregatesResponse response = ComputeAndSaveVisitAggregatesResponse.newBuilder().build();
         log.info("Success: Visit aggregates computed and saved successfully.");
         responseObserver.onNext(response);
@@ -229,8 +248,6 @@ public class HospitalGrpcServiceImpl extends HospitalServiceGrpc.HospitalService
             VisitAggregatesList response = VisitAggregatesList.newBuilder()
                     .addAllVisitAggregates(visitAggregatesInfo)
                     .build();
-
-
 
             // Send the response to the client
             responseObserver.onNext(response);

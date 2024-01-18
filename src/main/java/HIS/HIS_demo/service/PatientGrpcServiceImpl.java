@@ -28,17 +28,18 @@ import java.time.format.DateTimeFormatter;
 
 @GrpcService
 public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImplBase {
-
+    // Repositories for database access
     private final PatientRepository patientRepository;
     private final HospitalRepository hospitalRepository;
+    // Logger for logging information
     private static final Logger log = LoggerFactory.getLogger(PatientGrpcServiceImpl.class);
-
+    // Constructor for dependency injection
     @Autowired
     public PatientGrpcServiceImpl(PatientRepository patientRepository,HospitalRepository hospitalRepository) {
         this.patientRepository = patientRepository;
         this.hospitalRepository = hospitalRepository;
     }
-
+    // gRPC service method to create a new patient
     @Transactional
     @Override
     public void createPatient(CreatePatientRequest request, StreamObserver<PatientInfo> responseObserver) {
@@ -50,11 +51,11 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
                 request.getAddress(),
                 request.getPhoneNumber()
         );
-
+        // Calculate age based on the date of birth
         patientEntity.calculateAge();
-
+        // Save the new patient entity to the database
         PatientModel savedPatientEntity = patientRepository.save(patientEntity);
-
+        // Map the saved patient entity to gRPC response and send it to the client
         PatientInfo response = mapToPatientInfo(savedPatientEntity);
 
         responseObserver.onNext(response);
@@ -140,25 +141,29 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
     @Override
     public void registerPatient(RegisterPatientRequest request, StreamObserver<PatientHospitalRegistrationResponse> responseObserver) {
         try {
+            // Find the hospital entity by ID
             HospitalModel hospitalEntity = hospitalRepository.findById(request.getHospitalId())
                     .orElseThrow(() -> new RuntimeException("Hospital not found"));
-
+            // Find the patient entity by ID
             PatientModel patientEntity = patientRepository.findById(request.getPatientId())
                     .orElseThrow(() -> new RuntimeException("Patient not found"));
-
+            // Check if the patient is already registered in the hospital
             if (hospitalEntity.getPatients().contains(patientEntity)) {
                 throw new RuntimeException("Patient is already registered in the hospital");
             }
+            // Register the patient in the hospital
             patientEntity.registerInHospital(hospitalEntity);
+            // Save the updated patient and hospital entities to the database
+            patientRepository.save(patientEntity);
             patientRepository.save(patientEntity);
             hospitalRepository.save(hospitalEntity);
 
+            // Build and send the success response to the client
             PatientHospitalRegistrationResponse response = PatientHospitalRegistrationResponse.newBuilder()
                     .setPatientId(patientEntity.getId())
                     .setHospitalId(hospitalEntity.getId())
                     .setDateOfRegistration(Timestamp.newBuilder().setSeconds(Instant.now().getEpochSecond()))
                     .build();
-
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (Exception e) {
@@ -172,17 +177,20 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
     @Override
     public void listHospitalsForPatient(ListHospitalsForPatientRequest request,
                                         StreamObserver<HospitalsList> responseObserver) {
+        // Find the patient entity by ID
         try {
             PatientModel patientEntity = patientRepository.findById(request.getPatientId())
                     .orElseThrow(() -> new EntityNotFoundException("Patient not found"));
 
+            // Get the list of hospitals associated with the patient
             List<HospitalModel> Patienthospitals = new ArrayList<>(patientEntity.getHospitals());
 
+            // Map each hospital entity to a gRPC response
             List<patient.HospitalInfo> hospitalResponses = Patienthospitals.stream()
                     .map(this::mapToHospitalResponse)
                     .collect(Collectors.<patient.HospitalInfo>toList());
 
-
+            // Build the gRPC response containing the list of hospitals
             HospitalsList hospitalsListResponse = HospitalsList.newBuilder()
                     .addAllHospitals(hospitalResponses)
                     .build();
@@ -198,7 +206,7 @@ public class PatientGrpcServiceImpl extends PatientServiceGrpc.PatientServiceImp
         }
     }
 
-
+    // Helper method to map a PatientModel entity to a PatientInfo gRPC response
     private PatientInfo mapToPatientInfo(PatientModel patientEntity) {
         return GrpcUtils.mapToPatientInfo(patientEntity);
     }

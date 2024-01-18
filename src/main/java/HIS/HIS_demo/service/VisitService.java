@@ -23,27 +23,34 @@ public class VisitService {
     @Autowired
     private VisitAggregateRepository visitAggregateRepository;
 
-    public  void computeAndSaveVisitAggregates(int hospitalId) {
-        try{
-        // Fetch data from VisitModel based on hospitalId and calculate aggregates
-        List<Object[]> aggregatedData = visitRepository.getAggregateDataByHospitalAndMonth(calculateStartDateForLast10Years(), hospitalId);
-        log.info("Number of aggregated data fetched: {}", aggregatedData.size());
-        // Process the aggregated data and save to VisitAggregateEntity
-        for (Object[] data : aggregatedData) {
-            int visitYear = ((Number) data[1]).intValue();
-            int visitMonth = ((Number) data[2]).intValue();
-            double averageAge = ((Number) data[3]).doubleValue();
-            String gender = (String) data[4];
+    public void computeAndSaveVisitAggregates(int hospitalId) {
+        try {
+            Instant startDate = calculateStartDateForLast10Years();
+            Instant enddate= Instant.now();
+            log.info("Start date for computation: {}", startDate);
 
-            VisitAggregateModel aggregateEntity = new VisitAggregateModel(hospitalId, visitYear, visitMonth, averageAge, gender);
-            visitAggregateRepository.save(aggregateEntity);
-            log.info("Visit aggregates computation and save completed successfully for hospitalId: {}", hospitalId);
-        }}
+            // Fetch data from VisitModel based on hospitalId and calculate aggregates
+            List<Object[]> aggregatedData = visitRepository.getAggregateDataByHospitalAndMonth(startDate, hospitalId,enddate);
+            log.info("Number of aggregated data fetched: {}", aggregatedData.size());
+            log.info("Executing query with hospitalId: {}", hospitalId);
+            // Process the aggregated data and save to VisitAggregateEntity
+            for (Object[] data : aggregatedData) {
+                int visitYear = ((Number) data[1]).intValue();
+                int visitMonth = ((Number) data[2]).intValue();
+                double averageAge = ((Number) data[3]).doubleValue();
+                String gender = (String) data[4];
+
+                VisitAggregateModel aggregateEntity = new VisitAggregateModel(hospitalId, visitYear, visitMonth, averageAge, gender);
+                visitAggregateRepository.save(aggregateEntity);
+                log.info("Visit aggregates computation and save completed successfully for hospitalId: {}", hospitalId);
+            }
+        }
 
         catch (Exception e){
             log.error("Error computing and saving visit aggregates for hospitalId: {}", hospitalId, e);
         }
     }
+
     public List<VisitAggregateModel> getAggregatedDataByHospital(int hospitalId) {
         return visitAggregateRepository.findByHospitalId(hospitalId);
     }
